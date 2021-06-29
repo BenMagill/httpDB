@@ -3,11 +3,15 @@ import express from "express"
 var dbRouter = express.Router()
 
 dbRouter.post("*", (req, res) => {
-    res.send(`ADD TABLE TO DB ${req.options.database} `)
+    req.options.database.createTable(req.body.name, req.body.schema)
+    res.send("ok")
+    
 })
 
 dbRouter.get("*", (req, res) => {
     // GET ALL TABLES IN DB
+    res.json(req.options.database.getTables())
+        
 })
 
 dbRouter.put("*", (req, res) => {
@@ -15,11 +19,12 @@ dbRouter.put("*", (req, res) => {
 })
 
 dbRouter.patch("*", (req, res) => {
-    // UPDATE TABLE  INFO / COLUMNS
+    // TODO: UPDATE TABLE SCHEMA
 })
 
 dbRouter.delete("*", (req, res) => {
     // DELETE A TABLE
+    req.options.database.deleteTable(req.body.name)
 })
 
 

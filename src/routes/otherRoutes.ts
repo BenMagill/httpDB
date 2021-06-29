@@ -1,23 +1,22 @@
 import express from "express"
-import { writeFile } from "fs"
+import { manager } from "../classes/Manager"
 
 var otherRouter = express.Router()
 
 otherRouter.post("*", (req, res) => {
     // CREATE A DB
-    console.log(process.cwd())
-    const dbName = req.body.name
-    console.log(dbName)
+    try {
+        manager.createDb(req.body.name)
+        res.json("ok")
 
-    if (!dbName) res.json(false)
-
-    // TODO: add reference to new db in a overall file used to knowing what dbs exist
-
-    writeFile(`${process.cwd()} ${dbName}.db`, JSON.stringify({}), () => {})
+    } catch (e) {
+        res.json("fail")
+    }
 })
 
 otherRouter.get("*", (req, res) => {
     // GET ALL DBS
+    res.json(manager.allDbs())
 })
 
 otherRouter.put("*", (req, res) => {
@@ -26,10 +25,17 @@ otherRouter.put("*", (req, res) => {
 
 otherRouter.patch("*", (req, res) => {
     // UPDATE A DB
+    // IDK what you would update
 })
 
 otherRouter.delete("*", (req, res) => {
     // DELETE A DB
+    const result = manager.deleteDb(req.body.name)
+    if (result) {
+        res.json("ok")
+    } else {
+        res.json("fail")
+    }
 })
 
 export default otherRouter

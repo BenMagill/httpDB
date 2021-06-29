@@ -1,7 +1,8 @@
-import express from "express"
-import dbRouter from "./dbRoutes"
-import otherRouter from "./otherRoutes"
-import tableRouter from "./tableRoutes"
+import express, { ErrorRequestHandler } from "express"
+import { manager } from "./classes/Manager"
+import dbRouter from "./routes/dbRoutes"
+import otherRouter from "./routes/otherRoutes"
+import tableRouter from "./routes/tableRoutes"
 const app = express()
 
 app.use(express.json())
@@ -11,21 +12,39 @@ app.use(express.urlencoded({extended: true}))
 
 // Handles routes affecting a table
 app.use("/:db/:table", (req, res, next) => {
-    req.options = {
-        database: req.params.db,
-        table: req.params.table
+    const [db, table] = manager.findTable(req.params.db, req.params.table)
+    if (db && table) {
+        req.options = {
+            database: db,
+            table: table
+        }
+        next()
+    } else {
+        throw new Error("Table or database not found")
     }
-    next()
 }, tableRouter)
 
 // Handles routes affecting the database
 app.use("/:db/", (req, res, next) => {
-    req.options = {
-        database: req.params.db,
+ 
+    const db = manager.findDb(req.params.db)
+    if (db) {
+        req.options = {
+            database: db,
+        }
+        next()
+    } else {
+        throw new Error("Database not found")
     }
-    next()
 }, dbRouter)
 
 app.use("/", otherRouter)
 
-app.listen(8080)
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+    res.json({
+        err
+    })
+}
+app.use(errorHandler)
+
+app.listen(3000)
