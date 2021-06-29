@@ -2,7 +2,7 @@ import { readFileSync } from "fs"
 import { writeFile } from "fs/promises"
 import { FileExtension } from "../enums/FileTypes"
 import { RowType } from "../enums/RowType"
-import { queryExecutor } from "../queryExecutor"
+import { queryExecutor } from "../funcs/queryExecutor"
 
 export type ValidTypes = string | number | object | boolean | any[] | Date
 
