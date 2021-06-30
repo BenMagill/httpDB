@@ -1,8 +1,8 @@
-import { readFileSync } from "fs"
-import { writeFile } from "fs/promises"
+import { readFileSync, writeFile } from "fs"
 import { FileExtension } from "../enums/FileTypes"
 import { RowType } from "../enums/RowType"
 import { queryExecutor } from "../funcs/queryExecutor"
+import { log, Scope, Type } from "../logger"
 
 export type ValidTypes = string | number | object | boolean | any[] | Date
 
@@ -42,12 +42,15 @@ export class Table {
         this.dbName = dbName
 
         if (schema) {
+            log(Type.INFO, Scope.TABLE, `Creating new table ${name}`)
+
             // If schema then means new table
 
             this.rows = []
             this.rowCount = 0
             this.primaryKeyMax = 0
 
+            log(Type.INFO, Scope.TABLE, `Validating schema`)
             const parsedSchema = Table.validateSchema(schema)
 
             if (!parsedSchema) {
@@ -63,8 +66,9 @@ export class Table {
             
         } else {
             // Load from files
-            // TODO
             // Load schema from file
+            log(Type.INFO, Scope.TABLE, `Loading table ${name} from disk`)
+            
             const schemaDataSerialised = readFileSync(
                 this.getFilePath(FileExtension.TABLE_SCHEMA),
                 { encoding: "utf-8" }
@@ -113,6 +117,8 @@ export class Table {
 
     // TODO add type somehow
     addOne(row: { [key: string]: any }) {
+        log(Type.INFO, Scope.TABLE, `Adding row to ${this.name}`)
+
         // Check if inputted rows match schema options
         for (const field in this.schema) {
             if (Object.prototype.hasOwnProperty.call(this.schema, field)) {
@@ -150,25 +156,35 @@ export class Table {
         
         this.primaryKeyMax += 1
         
+        log(Type.INFO, Scope.TABLE, `Row added to ${this.name}`)
+        
         this.saveData()
         this.saveInfo()
+        
 
         return true
     }
 
     find(query: any) {
+        log(Type.INFO, Scope.TABLE, `Finding rowing in ${this.name}`)
         return queryExecutor(this.rows, query, this.schema)[0]
     }
     
     delete(query: any) {
-        // TODO
         // Delete rows based on conditions
+        
         const [rows, locations] = queryExecutor(this.rows, query, this.schema)
+
+        log(Type.WARN, Scope.TABLE, `Deleting ${locations.length} row(s) from ${this.name}`)
+
         console.log({rows, locations})
         for (let i = 0; i < locations.length; i++) {
             const index = locations[i];
             this.rows.splice(index, 1)
         }
+
+        log(Type.WARN, Scope.TABLE, `Deleted ${locations.length} row(s) from ${this.name}`)
+
         this.saveData()
         this.rowCount -= locations.length
 
@@ -176,9 +192,12 @@ export class Table {
     }   
 
     update(query: any) {
-        // TODO
+        
         // Update based on options
         const [rows, locations] = queryExecutor(this.rows, query, this.schema)
+
+        log(Type.INFO, Scope.TABLE, `Updating ${locations.length} row(s) in ${this.name} `)
+
         var modifications = query["$set"]
         for (let i = 0; i < locations.length; i++) {
             const index = locations[i];
@@ -192,6 +211,9 @@ export class Table {
                 }
             }
         }
+
+        log(Type.INFO, Scope.TABLE, `Updated ${locations.length} row(s) in ${this.name} `)
+
         this.saveData()
 
         return true
@@ -200,7 +222,9 @@ export class Table {
 
     saveSchema() {
         var serialised = JSON.stringify(this.schema)
-        writeFile(this.getFilePath(FileExtension.TABLE_SCHEMA), serialised)
+        writeFile(this.getFilePath(FileExtension.TABLE_SCHEMA), serialised, () => {
+            log(Type.INFO, Scope.TABLE, `Saved schema for table ${this.name}`)
+        })
     }
 
     saveInfo() {
@@ -209,7 +233,10 @@ export class Table {
         }
         writeFile(
             this.getFilePath(FileExtension.TABLE_INFO),
-            JSON.stringify(data)
+            JSON.stringify(data),
+            () => {
+                log(Type.INFO, Scope.TABLE, `Saved info for table ${this.name}`)
+            }
         )
     }
 
@@ -217,7 +244,9 @@ export class Table {
         // Saves the row data
         // Schema only saved when saved so not needed here
         const data = JSON.stringify(this.rows)
-        writeFile(this.getFilePath(FileExtension.TABLE), data)
+        writeFile(this.getFilePath(FileExtension.TABLE), data, () => {
+            log(Type.INFO, Scope.TABLE, `Saved data for table ${this.name}`)
+        })
         this.saveInfo()
     }
 
