@@ -5,11 +5,9 @@ var tableRouter = express.Router()
 
 // for adding data
 tableRouter.post("*", (req, res) => {
-
     const row = req.body
-    // TODO: ADD to table
     req.options.table?.addOne(row)
-    res.send("INSERT INTO A table")
+    res.json(row)
 })
 
 tableRouter.get("*", (req, res) => {

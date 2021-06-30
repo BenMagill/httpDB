@@ -1,18 +1,19 @@
 import express from "express"
 import { manager } from "../classes/Manager"
+import { log, Scope, Type } from "../logger"
 
 var otherRouter = express.Router()
 
 otherRouter.post("*", (req, res) => {
     // CREATE A DB
     manager.createDb(req.body.name)
-    console.info(`Creating a database with name ${req.body.name}`)
+    log(Type.INFO, Scope.MANAGER, `Creating a database with name ${req.body.name}`)
     res.json(true)
 })
 
 otherRouter.get("*", (req, res) => {
     // GET ALL DBS
-    console.info("Getting all databases")
+    log(Type.INFO, Scope.MANAGER, "Getting all databases")
     res.json(manager.allDbs())
 })
 
@@ -29,7 +30,7 @@ otherRouter.patch("*", (req, res) => {
 otherRouter.delete("*", (req, res) => {
     // DELETE A DB
     manager.deleteDb(req.body.name)
-    console.warn(`Deleting database ${req.body.name} permenantly and all tables within!`)
+    log(Type.WARN, Scope.MANAGER, `Deleting database ${req.body.name} permenantly and all tables within!`)
     res.json(true)
 })
 
