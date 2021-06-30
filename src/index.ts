@@ -1,14 +1,27 @@
+import dotenv from "dotenv"
 import express, { ErrorRequestHandler } from "express"
 import { manager } from "./classes/Manager"
 import dbRouter from "./routes/dbRoutes"
 import otherRouter from "./routes/otherRoutes"
 import tableRouter from "./routes/tableRoutes"
+
+dotenv.config()
+
 const app = express()
 
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 
-// TODO: add authentication middleware
+app.use("*", (req, res, next) => {
+    var username = String(req.headers.username)
+    var password = String(req.headers.password)
+    if (manager.authenticate(username, password)) {
+        next()
+    } else {
+        throw new Error("Incorrect username or password")
+    }
+})
+
 
 // Handles routes affecting a table
 app.use("/:db/:table", (req, res, next) => {
@@ -41,7 +54,7 @@ app.use("/:db/", (req, res, next) => {
 app.use("/", otherRouter)
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-    console.log(err)
+    console.warn("[Error] " + err.message)
     const response = {error: "An error has occured"}
     if (err.message) {
         response.error = err.message

@@ -11,4 +11,11 @@ declare  global {
         }
     }
 
+    namespace NodeJS {
+        export interface ProcessEnv {
+            USERNAME: string
+            PASSWORD: string
+        }
+    }
+
 }

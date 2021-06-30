@@ -56,11 +56,11 @@ export class Table {
                 this.schema = parsedSchema
             }
 
-            // Save schema to disk
+            // Save to disk
             this.saveSchema()
-
             this.saveData()
             this.saveInfo()
+            
         } else {
             // Load from files
             // TODO

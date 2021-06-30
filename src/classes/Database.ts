@@ -1,6 +1,7 @@
 import { readFileSync, unlink } from "fs"
 import { writeFile } from "fs/promises"
 import { FileExtension } from "../enums/FileTypes"
+import validName from "../funcs/validName"
 import { Schema, Table } from "./Table"
 
 
@@ -43,6 +44,8 @@ export class Database {
     }
 
     createTable(name: string, schema: Schema) {
+        if (this.findTable(name)) throw new Error(`Table of name ${name} already exists in database ${this.name}`)
+        if (!validName(name)) throw new Error("Invalid name for a table")
         const table = new Table(name, this.name, schema)
         this.tables[name] = table
         this.save()
@@ -60,7 +63,7 @@ export class Database {
             this.save()
             return true
         } else {
-            throw new Error(`Table with name ${name} not found.`)
+            throw new Error(`Table with name ${name} not found in database ${this.name}.`)
         }
     }
 
