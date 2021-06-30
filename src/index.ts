@@ -1,6 +1,7 @@
 import dotenv from "dotenv"
 import express, { ErrorRequestHandler } from "express"
 import { manager } from "./classes/Manager"
+import { log, Scope, Type } from "./logger"
 import dbRouter from "./routes/dbRoutes"
 import otherRouter from "./routes/otherRoutes"
 import tableRouter from "./routes/tableRoutes"
@@ -54,7 +55,13 @@ app.use("/:db/", (req, res, next) => {
 app.use("/", otherRouter)
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-    console.warn("[Error] " + err.message)
+    var scope = Scope.MANAGER
+    if (req.options) {
+        if (req.options.database) scope = Scope.DATABASE
+        if (req.options.table) scope = Scope.TABLE 
+    }
+
+    log(Type.ERROR, scope, err.message)
     const response = {error: "An error has occured"}
     if (err.message) {
         response.error = err.message
