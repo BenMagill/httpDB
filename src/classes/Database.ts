@@ -65,13 +65,8 @@ export class Database {
     }
 
     findTable(name: string) {
-        for (const tableName in this.tables) {
-            if (Object.prototype.hasOwnProperty.call(this.tables, tableName)) {
-                const table = this.tables[tableName];
-                if (tableName === name) return table
-            }
-        }
-        return null
+        var tblFound = this.tables[name]
+        return tblFound ? tblFound : null
     }
 
     getTables() {

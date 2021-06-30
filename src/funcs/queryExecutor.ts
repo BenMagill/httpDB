@@ -1,6 +1,6 @@
 import { Schema } from "../classes/Table"
-import arrayOfRange from "../helpers/arrayOfRange"
-import { isEmptyObject } from "../helpers/isEmptyObject"
+import arrayOfRange from "./arrayOfRange"
+import { isEmptyObject } from "./isEmptyObject"
 
 /**
  * {var:{$eq:value}}

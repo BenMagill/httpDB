@@ -91,15 +91,8 @@ class Manager {
     }
 
     findDb(name: string) {
-        for (const dbName in this.databases) {
-            if (Object.prototype.hasOwnProperty.call(this.databases, dbName)) {
-                const db = this.databases[dbName];
-                if (dbName === name) {
-                    return db
-                }
-            }
-        }
-        return null
+        var dbFound = this.databases[name]
+        return dbFound ? dbFound : null
     }
 
     findTable(database: string, table: string): [Database, Table] | [null, null] {

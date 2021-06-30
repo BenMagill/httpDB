@@ -41,9 +41,11 @@ app.use("/:db/", (req, res, next) => {
 app.use("/", otherRouter)
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-    res.json({
-        err
-    })
+    const response = {error: "An error has occured"}
+    if (err.message) {
+        response.error = err.message
+    } 
+    res.json(response)
 }
 app.use(errorHandler)
 
