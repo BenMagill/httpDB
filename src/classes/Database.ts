@@ -30,7 +30,6 @@ export class Database {
 
     async save() {
         // save contents and all tables
-
         const tableNames = []
         for (const tableName in this.tables) {
             if (Object.prototype.hasOwnProperty.call(this.tables, tableName)) {
@@ -47,6 +46,7 @@ export class Database {
         const table = new Table(name, this.name, schema)
         this.tables[name] = table
         this.save()
+        return table.name
     }
 
     deleteTable(name: string) {

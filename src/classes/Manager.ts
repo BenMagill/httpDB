@@ -23,7 +23,7 @@ class Manager {
             writeFileSync(this.path, JSON.stringify({databases: []}))
             
         } else {
-            console.log("Reading data")
+            console.log("Reading data from file")
             const dataS = readFileSync(this.path, {encoding: "utf-8"}) 
             const data: ManagerFile = JSON.parse(dataS)
     
@@ -33,7 +33,6 @@ class Manager {
                 this.databases[dbName] = db
             }
         }
-        console.log(this)
     }
 
     async save() {
@@ -57,6 +56,8 @@ class Manager {
         const db = new Database(name, false)
         this.databases[name] = db
         this.save()
+
+        return db.name
     }
 
     deleteDb(name: string) {

@@ -146,14 +146,14 @@ export class Table {
             }
         }
 
-        console.log(row)
-
         this.rows.push(row)
         
         this.primaryKeyMax += 1
         
         this.saveData()
         this.saveInfo()
+
+        return true
     }
 
     find(query: any) {
@@ -171,6 +171,8 @@ export class Table {
         }
         this.saveData()
         this.rowCount -= locations.length
+
+        return true
     }   
 
     update(query: any) {
@@ -191,6 +193,8 @@ export class Table {
             }
         }
         this.saveData()
+
+        return true
 
     }
 
