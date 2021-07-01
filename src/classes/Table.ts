@@ -166,7 +166,7 @@ export class Table {
     }
 
     find(query: any) {
-        log(Type.INFO, Scope.TABLE, `Finding rowing in ${this.name}`)
+        log(Type.INFO, Scope.TABLE, `Finding rows in ${this.name}`)
         return queryExecutor(this.rows, query, this.schema)[0]
     }
     
@@ -177,7 +177,6 @@ export class Table {
 
         log(Type.WARN, Scope.TABLE, `Deleting ${locations.length} row(s) from ${this.name}`)
 
-        console.log({rows, locations})
         for (let i = 0; i < locations.length; i++) {
             const index = locations[i];
             this.rows.splice(index, 1)

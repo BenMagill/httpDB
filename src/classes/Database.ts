@@ -10,7 +10,7 @@ export class Database {
     tables: {[key: string]: Table}
     path: string
     constructor (name: string, fromDisk: boolean) {
-        // Name must have no spaces or use "."
+        // TODO Name must have no spaces or use "."
         this.name = name
         this.path = `${process.cwd()}/data/${this.name}.${FileExtension.DATABASE}`
         this.tables = {}

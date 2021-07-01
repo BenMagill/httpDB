@@ -42,9 +42,7 @@ type QueryExecutorResponse = [any[], number[]]
 // Could return location of rows for fast update and delete
 export function queryExecutor(array: Array<any>, query: any, schema: Schema): QueryExecutorResponse {
     const joins = ["$and", "$or"]
-    console.log({ query, array, schema })
     if (isEmptyObject(query)) {
-        console.log("no query")
         return [array , [...arrayOfRange(array.length)]]
     }
 	var locations: number[] = []
@@ -52,12 +50,9 @@ export function queryExecutor(array: Array<any>, query: any, schema: Schema): Qu
         if (Object.prototype.hasOwnProperty.call(query, key)) {
             const element = query[key]
             const variableName = key
-            console.log({ variableName })
             if (joins.includes(key)) {
-                console.log("and or or ")
                 var leftQ = element[0]
                 var rightQ = element[1]
-                console.log({ leftQ, rightQ })
                 const [leftResult, leftLocations]: QueryExecutorResponse = queryExecutor([...array], leftQ, schema)
                 const [rightResult, rightLocations]: QueryExecutorResponse = queryExecutor([...array], rightQ, schema)
                 if (key === "$and") {
@@ -84,8 +79,6 @@ export function queryExecutor(array: Array<any>, query: any, schema: Schema): Qu
 							if (result) locations.push(i)
                             return result
                         })
-                        console.log(array)
-						console.log(locations)
                     }
                 }
             }
