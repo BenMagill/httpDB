@@ -1,6 +1,5 @@
 import { existsSync, readFileSync, unlink, writeFileSync } from "fs"
 import { writeFile } from "fs/promises"
-import validName from "../funcs/validName"
 import { log, Scope, Type } from "../logger"
 import { Database } from "./Database"
 import { Table } from "./Table"
@@ -28,6 +27,7 @@ class Manager {
         this.databases = {}
 
         log(Type.INFO, Scope.MANAGER, "Loading all databases")
+        
         if (!existsSync(this.path)) {
             log(Type.INFO, Scope.MANAGER, "No main file found. Creating...")
             var initialData = {
@@ -45,9 +45,14 @@ class Manager {
                 this.databases[dbName] = db
             }
         }
+        
+        log(Type.INFO, Scope.MANAGER, `Loaded all databases`)
+
     }
 
     async save() {
+
+        log(Type.INFO, Scope.MANAGER, `Saving everything`)
         const oldFile = readFileSync(this.path, {encoding: "utf-8"})
         var managerData: ManagerFile = JSON.parse(oldFile)
         const dbNames = []
@@ -62,13 +67,13 @@ class Manager {
 
         const data = JSON.stringify(managerData)
         await writeFile(this.path, data)
+
+        log(Type.INFO, Scope.MANAGER, `Saved`)
+
     }
 
     createDb(name: string) {
         if (this.findDb(name)) throw new Error(`Database ${name} already exists`)
-        if (!validName(name)) {
-            throw new Error("Invalid name for a database")
-        }
         const db = new Database(name, false)
         this.databases[name] = db
         this.save()
@@ -78,6 +83,8 @@ class Manager {
 
     deleteDb(name: string) {
         // Must delete the db and all tables
+        log(Type.WARN, Scope.MANAGER, `Deleting database ${name}`)
+
         const foundDb = this.findDb(name)
         if (!foundDb) {
             throw new Error(`Database with name ${name} not found`)
@@ -101,10 +108,14 @@ class Manager {
         // Update config 
         this.save()
 
+        log(Type.INFO, Scope.MANAGER, `Deleted ${name}`)
+
         return true
     }
 
     allDbs() {
+        log(Type.INFO, Scope.MANAGER, `Getting all databases`)
+
         const dbs = []
         for (const dbName in this.databases) {
             if (Object.prototype.hasOwnProperty.call(this.databases, dbName)) {
@@ -134,6 +145,8 @@ class Manager {
     }
 
     authenticate(username: string, password: string) {
+        log(Type.INFO, Scope.MANAGER, `Attempting authentication`)
+        
         if (this.username === username && this.password === password) return true
         return false
     }

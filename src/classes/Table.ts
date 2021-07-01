@@ -2,6 +2,7 @@ import { readFileSync, writeFile } from "fs"
 import { FileExtension } from "../enums/FileTypes"
 import { RowType } from "../enums/RowType"
 import { queryExecutor } from "../funcs/queryExecutor"
+import validName from "../funcs/validName"
 import { log, Scope, Type } from "../logger"
 
 export type ValidTypes = string | number | object | boolean | any[] | Date
@@ -38,6 +39,8 @@ export class Table {
     // indexes: array
 
     constructor(name: string, dbName: string, schema?: Schema) {
+        if (!validName(name)) throw new Error(`Name of table "${name}" is not valid`)
+
         this.name = name
         this.dbName = dbName
 
@@ -63,6 +66,9 @@ export class Table {
             this.saveSchema()
             this.saveData()
             this.saveInfo()
+
+            log(Type.INFO, Scope.TABLE, `Created new table ${name}`)
+
             
         } else {
             // Load from files
