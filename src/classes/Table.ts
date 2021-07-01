@@ -142,12 +142,12 @@ export class Table {
                         }
                     }
                     // If default provided and not inputted
-                    if (fieldInfo.default && row[field] === undefined) {
+                    if (fieldInfo.default != undefined && row[field] == undefined) {
                         row[field] = fieldInfo.default
                     }
 
                     // Check type
-                    if (!this.validateField(fieldInfo.type, row[field])) {
+                    if (!this.validateField(fieldInfo.type, row[field]) && fieldInfo.required) {
                         throw new Error(
                             `Type of field "${field}" does not match input (${typeof row[
                                 field
