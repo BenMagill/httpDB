@@ -183,7 +183,7 @@ export class Table {
 
         log(Type.WARN, Scope.TABLE, `Deleting ${locations.length} row(s) from ${this.name}`)
 
-        for (let i = 0; i < locations.length; i++) {
+        for (let i = locations.length-1; i >= 0 ; i--) {
             const index = locations[i];
             this.rows.splice(index, 1)
         }
@@ -193,7 +193,7 @@ export class Table {
         this.saveData()
         this.rowCount -= locations.length
 
-        return true
+        return locations.length
     }   
 
     update(query: any) {
