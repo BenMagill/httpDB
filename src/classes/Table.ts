@@ -221,7 +221,7 @@ export class Table {
 
         this.saveData()
 
-        return true
+        return locations.length
 
     }
 

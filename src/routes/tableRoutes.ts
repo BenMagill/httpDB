@@ -29,16 +29,14 @@ tableRouter.get("*", (req, res) => {
 tableRouter.delete("*", (req, res) => {
     // DELETE ROWS FROM TABLE
     var query = req.body
-    req.options.table?.delete(query)
-    res.json("ok")
+    res.json(req.options.table?.delete(query))
 })
 
 tableRouter.patch("*", (req, res) => {
     // UPDATE ROWS
     // GET ROWS FROM TABLE
     var query = req.body
-    req.options.table?.update(query)
-    res.json("ok")
+    res.json(req.options.table?.update(query))
 })
 
 export default tableRouter
