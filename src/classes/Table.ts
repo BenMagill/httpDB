@@ -4,6 +4,7 @@ import { RowType } from "../enums/RowType"
 import { queryExecutor } from "../funcs/queryExecutor"
 import validName from "../funcs/validName"
 import { log, Scope, Type } from "../logger"
+import { Database } from "./Database"
 
 export type ValidTypes = string | number | object | boolean | any[] | Date
 
@@ -14,6 +15,7 @@ interface Row {
     required?: boolean
     default?: any // Can't be used with PRIMARY_KEY. Works only when required false
     currentMax?: number // Used with PRIMARY_KEY. Only in Schema when on disk
+    ref?: string // Used with foreign key. Refers to the name of a table in the db
 }
 
 export interface Schema {
@@ -38,13 +40,13 @@ export class Table {
 
     // indexes: array
 
-    constructor(name: string, dbName: string, schema?: Schema) {
+    constructor(name: string, dbName: string, schema?: Schema, parentDB?: Database) {
         if (!validName(name)) throw new Error(`Name of table "${name}" is not valid`)
 
         this.name = name
         this.dbName = dbName
 
-        if (schema) {
+        if (schema && parentDB) {
             log(Type.INFO, Scope.TABLE, `Creating new table ${name}`)
 
             // If schema then means new table
@@ -54,7 +56,7 @@ export class Table {
             this.primaryKeyMax = 0
 
             log(Type.INFO, Scope.TABLE, `Validating schema`)
-            const parsedSchema = Table.validateSchema(schema)
+            const parsedSchema = Table.validateSchema(schema, parentDB)
 
             if (!parsedSchema) {
                 throw new Error("Invalid Table data")
@@ -100,7 +102,7 @@ export class Table {
         }
     }
 
-    static validateSchema(schema: Schema): Schema | null {
+    static validateSchema(schema: Schema, parentDB: Database): Schema | null {
         var hasPrimary = false
 
         for (const fieldName in schema) {
@@ -112,6 +114,28 @@ export class Table {
                     if (hasPrimary) return null
 
                     hasPrimary = true
+                } else if (fieldProperties.type === RowType.FOREIGN_KEY) {
+                    if (!fieldProperties.ref) {
+                        throw new Error("Foreign Key field must include a reference to another table")
+                    }
+                    
+                    if (fieldProperties.ref === this.name) {
+                        throw new Error("Foreign Key table referenced must not be itself") 
+                    }
+                    var foundTable = parentDB.findTable(fieldProperties.ref)
+                    if (!foundTable) {
+                        throw new Error("Foreign Key table referenced not found") 
+                    }
+                    //TODO: ensure foreign key fields ref is equal to a valid table
+                    // Once again has the problem of has to access the parent database.
+                    /**
+                     * Ideas: 
+                     *  Provides a reference to parent table in instantiation which can then be used to use its functions.  
+                     *      This would be pretty viable as a quick fix. However may be quite inefficient for large number of tables 
+                     *      What am i saying idiot its only a reference not a copy of the class so would take up barely and memory
+                     *  
+                     */
+
                 }
             }
         }
@@ -171,9 +195,73 @@ export class Table {
         return true
     }
 
-    find(query: any) {
+    find(query: any, parentDB: Database) {
+        console.log({table: this.rows, parentDB: parentDB.tables["table1"].rows})
+        // TODO: add foreign key support
+        // Needs a way to access other tables in the database
+        // Could be done by recieving a reference to the parent database so that it can call findTable() and then get a row matching foreign key
         log(Type.INFO, Scope.TABLE, `Finding rows in ${this.name}`)
-        return queryExecutor(this.rows, query, this.schema)[0]
+        
+        var [rows, locations] = queryExecutor([...this.rows], query, this.schema)
+
+        // TODO VEry hacky find better way
+        var rowsOut = JSON.parse(JSON.stringify(rows))
+        
+        // console.log(rows)
+        // TODO: slow as hell so find better way to do it 
+        
+        // Get tables to populate foreign keys with
+        var populate = query.$populate
+        // console.log(populate)
+        if (populate && populate instanceof Array) {
+            // console.log("found fields to populate")
+            for (let i = 0; i < populate.length; i++) {
+                const table = populate[i];
+                // console.log(table)
+                const foundTable = parentDB.findTable(table) 
+                // console.log(foundTable)
+                if (foundTable) {
+                    // Table exists
+
+                    var primaryField = ""
+                    // Get location of primarykey in foreign table
+                    for (const fSchemaField in foundTable.schema) {
+                        if (Object.prototype.hasOwnProperty.call(foundTable.schema, fSchemaField)) {
+                            const fFieldProps = foundTable.schema[fSchemaField];
+                            if (fFieldProps.type === RowType.PRIMARY_KEY) {
+                                primaryField = fSchemaField
+                            }
+                            
+                        }
+                    }
+
+                    // Check if in schema and if so what field
+                    for (const schemaField in this.schema) {
+                        if (Object.prototype.hasOwnProperty.call(this.schema, schemaField)) {
+                            const schemaFieldProperties = this.schema[schemaField];
+                            if (schemaFieldProperties.type === RowType.FOREIGN_KEY) {
+                                if (schemaFieldProperties.ref === table) {
+                                    // Populate each row
+                                    for (let j = 0; j < rows.length; j++) {
+                                        const row = rowsOut[j];
+                                        // console.log(row[schemaField])
+                                        // If field has data
+                                        if (row[schemaField]) {
+                                            var [data] = queryExecutor([...foundTable.rows], {[primaryField]: {$eq: row[schemaField]}}, foundTable.schema)
+                                            // console.log(data[0])
+                                            // rowsOut.push({...row, [schemaField]: data[0]})
+                                            row[schemaField] = data[0]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return rowsOut
     }
     
     delete(query: any) {

@@ -20,7 +20,7 @@ tableRouter.get("*", (req, res) => {
         conditions = decode(decodeURIComponent(String(query)))
     }
     res.json(
-        req.options.table?.find(conditions)
+        req.options.table?.find(conditions, req.options.database)
     )
 
     

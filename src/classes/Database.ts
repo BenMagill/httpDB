@@ -54,7 +54,7 @@ export class Database {
 
     createTable(name: string, schema: Schema) {
         if (this.findTable(name)) throw new Error(`Table of name ${name} already exists in database ${this.name}`)
-        const table = new Table(name, this.name, schema)
+        const table = new Table(name, this.name, schema, this)
         this.tables[name] = table
         this.save()
         return table.name

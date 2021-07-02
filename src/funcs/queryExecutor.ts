@@ -41,44 +41,54 @@ type QueryExecutorResponse = [any[], number[]]
 // TODO: improve readability and add better checks for invalid input
 // Could return location of rows for fast update and delete
 export function queryExecutor(array: Array<any>, query: any, schema: Schema): QueryExecutorResponse {
+    var schema = {...schema}
+    var array = [...array]
     const joins = ["$and", "$or"]
+    const special = ["$populate"]
+
     if (isEmptyObject(query)) {
         return [array , [...arrayOfRange(array.length)]]
     }
+
 	var locations: number[] = []
     for (const key in query) {
         if (Object.prototype.hasOwnProperty.call(query, key)) {
             const element = query[key]
             const variableName = key
-            if (joins.includes(key)) {
-                var leftQ = element[0]
-                var rightQ = element[1]
-                const [leftResult, leftLocations]: QueryExecutorResponse = queryExecutor([...array], leftQ, schema)
-                const [rightResult, rightLocations]: QueryExecutorResponse = queryExecutor([...array], rightQ, schema)
-                if (key === "$and") {
-                    return [andCombine(leftResult, rightResult), leftLocations.filter(value => rightLocations.includes(value))]
-                } else {
-                    // OR
-					return [orCombine(leftResult, rightResult), Array.from(new Set(leftLocations.concat(rightLocations)))]
-                }
-            } else {
-                // Key is the var name
-                var rowData = schema[key]
-                if (!rowData) throw new Error(`Column ${key} does not exist`)
 
-                // Do looking through based on conditions
-                for (const operator in element) {
-                    if (
-                        Object.prototype.hasOwnProperty.call(element, operator)
-                    ) {
-                        const match = element[operator]
-						var i = -1
-                        array = array.filter((row) => {
-							i++
-							var result = keepRow(row, variableName, operator, match)
-							if (result) locations.push(i)
-                            return result
-                        })
+            // If key is not a special one then handle it if else ignore
+            if (!special.includes(key)) {
+                
+                if (joins.includes(key)) {
+                var leftQ = element[0]
+                    var rightQ = element[1]
+                    const [leftResult, leftLocations]: QueryExecutorResponse = queryExecutor([...array], leftQ, schema)
+                    const [rightResult, rightLocations]: QueryExecutorResponse = queryExecutor([...array], rightQ, schema)
+                    if (key === "$and") {
+                        return [andCombine(leftResult, rightResult), leftLocations.filter(value => rightLocations.includes(value))]
+                    } else {
+                        // OR
+                        return [orCombine(leftResult, rightResult), Array.from(new Set(leftLocations.concat(rightLocations)))]
+                    }
+                } else {
+                    // Key is the var name
+                    var rowData = schema[key]
+                    if (!rowData) throw new Error(`Column ${key} does not exist`)
+    
+                    // Do looking through based on conditions
+                    for (const operator in element) {
+                        if (
+                            Object.prototype.hasOwnProperty.call(element, operator)
+                        ) {
+                            const match = element[operator]
+                            var i = -1
+                            array = array.filter((row) => {
+                                i++
+                                var result = keepRow(row, variableName, operator, match)
+                                if (result) locations.push(i)
+                                return result
+                            })
+                        }
                     }
                 }
             }

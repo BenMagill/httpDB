@@ -6,5 +6,6 @@ export enum RowType {
     ARRAY = "ARRAY",
     BOOLEAN = "BOOLEAN",
     DATE = "DATE",
-    PRIMARY_KEY = "PRIMARY_KEY"
+    PRIMARY_KEY = "PRIMARY_KEY",
+    FOREIGN_KEY =  "FOREIGN_KEY"
 }
