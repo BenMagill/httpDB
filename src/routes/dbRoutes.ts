@@ -4,7 +4,7 @@ var dbRouter = express.Router()
 
 dbRouter.post("*", (req, res) => {
     req.options.database.createTable(req.body.name, req.body.schema)
-    res.send("ok")
+    res.json(true)
     
 })
 
@@ -25,6 +25,7 @@ dbRouter.patch("*", (req, res) => {
 dbRouter.delete("*", (req, res) => {
     // DELETE A TABLE
     req.options.database.deleteTable(req.body.name)
+    res.json(true)
 })
 
 
